@@ -11,6 +11,8 @@ import (
 	"github.com/bkielbasa/go-web-app/pkg/infra"
 )
 
+const tearDownTimeout = 5 * time.Second
+
 func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -34,7 +36,7 @@ func main() {
 	log.Printf("stopping the server")
 
 	// we give some time to close all opened connection and tidy up everything
-	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel = context.WithTimeout(context.Background(), tearDownTimeout)
 	defer cancel()
 
 	teardown(ctx)
@@ -53,7 +55,10 @@ func App(ctx context.Context) (func(), func(context.Context) error, error) {
 	}
 
 	return func() {
-			srv.ListenAndServe()
+			err := srv.ListenAndServe()
+			if err != nil {
+				log.Print(err)
+			}
 		},
 		func(ctx context.Context) error {
 			return srv.Shutdown(ctx)
