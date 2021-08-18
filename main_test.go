@@ -9,15 +9,23 @@ import (
 )
 
 func TestRunningApp(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short tests")
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	run, tearDown, err := App(ctx)
+	if err != nil {
+		t.Error(err)
+	}
+
 	defer func() {
 		tearCtx, cancelTear := context.WithTimeout(context.Background(), time.Second)
 		defer cancelTear()
 
-		tearDown(tearCtx)
+		_ = tearDown(tearCtx)
 	}()
 	go run()
 

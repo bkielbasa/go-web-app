@@ -39,7 +39,10 @@ func main() {
 	ctx, cancel = context.WithTimeout(context.Background(), tearDownTimeout)
 	defer cancel()
 
-	teardown(ctx)
+	err = teardown(ctx)
+	if err != nil {
+		log.Printf("cannot tear down clearly: %s", err)
+	}
 	log.Printf("server stopped")
 }
 
