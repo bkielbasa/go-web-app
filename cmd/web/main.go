@@ -3,12 +3,11 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	"github.com/bkielbasa/go-web-app/pkg/infra"
+	"github.com/bkielbasa/go-web-app/cmd/web/run"
 )
 
 const tearDownTimeout = 5 * time.Second
@@ -24,7 +23,7 @@ func main() {
 		cancel()
 	}()
 
-	run, teardown, err := App(ctx)
+	run, teardown, err := run.App(ctx)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -44,26 +43,4 @@ func main() {
 		log.Printf("cannot tear down clearly: %s", err)
 	}
 	log.Printf("server stopped")
-}
-
-func App(ctx context.Context) (func(), func(context.Context) error, error) {
-	mux := http.NewServeMux()
-	healthy := infra.NewHealthy()
-	mux.HandleFunc("/healthyz", healthy.Healthy)
-	mux.HandleFunc("/readyz", healthy.Ready)
-
-	srv := &http.Server{
-		Addr:    ":8080",
-		Handler: mux,
-	}
-
-	return func() {
-			err := srv.ListenAndServe()
-			if err != nil {
-				log.Print(err)
-			}
-		},
-		func(ctx context.Context) error {
-			return srv.Shutdown(ctx)
-		}, nil
 }

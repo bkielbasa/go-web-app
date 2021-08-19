@@ -1,4 +1,4 @@
-package main
+package e2e_test
 
 import (
 	"context"
@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/bkielbasa/go-web-app/cmd/web/run"
 )
 
 func TestRunningApp(t *testing.T) {
@@ -16,7 +18,7 @@ func TestRunningApp(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	run, tearDown, err := App(ctx)
+	run, tearDown, err := run.App(ctx)
 	if err != nil {
 		t.Error(err)
 	}

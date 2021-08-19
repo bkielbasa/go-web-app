@@ -5,7 +5,7 @@ WORKDIR /build/
 COPY go.* .
 RUN go mod download
 COPY . .
-RUN go build -o webapp
+RUN go build ./cmd/web -o webapp
 
 FROM alpine
 WORKDIR /app
