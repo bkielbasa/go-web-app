@@ -7,6 +7,8 @@ import (
 	"syscall"
 )
 
+// Context provides the context.Context instance that's closed when SIGINT or SIGTERM will be sent
+// It can be used for grace shutdown of the application
 func Context() context.Context {
 	ctx, cancel := context.WithCancel(context.Background())
 

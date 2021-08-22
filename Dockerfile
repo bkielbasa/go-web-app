@@ -2,9 +2,9 @@ FROM golang:1.16 AS builder
 
 RUN mkdir /build/
 WORKDIR /build/
-COPY go.* .
+COPY go.* ./
 RUN go mod download
-COPY . .
+COPY . ./
 WORKDIR /build/cmd/web/
 RUN go build -o webapp
 
