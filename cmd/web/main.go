@@ -3,42 +3,31 @@ package main
 import (
 	"context"
 	"log"
-	"os"
-	"os/signal"
 	"time"
 
-	"github.com/bkielbasa/go-web-app/cmd/web/run"
+	"github.com/bkielbasa/go-web-app/internal/application"
+	"github.com/bkielbasa/go-web-app/internal/cmd"
 )
 
 const tearDownTimeout = 5 * time.Second
 
 func main() {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx := cmd.Context()
+	app := application.New(ctx)
 
 	go func() {
-		oscall := <-c
-		log.Printf("system call:%+v", oscall)
-		cancel()
+		_ = app.Run()
 	}()
-
-	run, teardown, err := run.App(ctx)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	go run()
 
 	log.Printf("server started")
 	<-ctx.Done()
 	log.Printf("stopping the server")
 
 	// we give some time to close all opened connection and tidy up everything
-	ctx, cancel = context.WithTimeout(context.Background(), tearDownTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), tearDownTimeout)
 	defer cancel()
 
-	err = teardown(ctx)
+	err := app.Close(ctx)
 	if err != nil {
 		log.Printf("cannot tear down clearly: %s", err)
 	}

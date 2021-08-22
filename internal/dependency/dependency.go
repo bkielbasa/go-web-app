@@ -1,17 +1,24 @@
-package infra
+package dependency
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
+// Dependency is used to tell your container orchestrator if your service
+// is ready for the production trafic and it's healthy
+// It can be used, for example, by Kubernetes to restart your pod
 type Dependency interface {
-	Healthy() bool
-	Ready() bool
+	Healthy(context.Context) bool
+	Ready(context.Context) bool
+	Close() error
 }
 
 type DependencyManager struct {
 	dependencies []Dependency
 }
 
-func NewHealthy() *DependencyManager {
+func New() *DependencyManager {
 	return &DependencyManager{
 		dependencies: []Dependency{},
 	}
@@ -19,7 +26,7 @@ func NewHealthy() *DependencyManager {
 
 func (h *DependencyManager) Healthy(w http.ResponseWriter, r *http.Request) {
 	for _, s := range h.dependencies {
-		if !s.Healthy() {
+		if !s.Healthy(r.Context()) {
 			http.Error(w, "Unhealthy", http.StatusInternalServerError)
 		}
 	}
@@ -27,7 +34,7 @@ func (h *DependencyManager) Healthy(w http.ResponseWriter, r *http.Request) {
 
 func (h *DependencyManager) Ready(w http.ResponseWriter, r *http.Request) {
 	for _, s := range h.dependencies {
-		if !s.Ready() {
+		if !s.Ready(r.Context()) {
 			http.Error(w, "Not ready", http.StatusInternalServerError)
 		}
 	}

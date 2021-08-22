@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bkielbasa/go-web-app/cmd/web/run"
+	"github.com/bkielbasa/go-web-app/internal/application"
+	"github.com/matryer/is"
 )
 
 func TestRunningApp(t *testing.T) {
@@ -15,33 +16,29 @@ func TestRunningApp(t *testing.T) {
 		t.Skip("skipping in short tests")
 	}
 
+	is := is.New(t)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	run, tearDown, err := run.App(ctx)
-	if err != nil {
-		t.Error(err)
-	}
+	app := application.New(ctx)
 
 	defer func() {
 		tearCtx, cancelTear := context.WithTimeout(context.Background(), time.Second)
 		defer cancelTear()
 
-		_ = tearDown(tearCtx)
+		_ = app.Close(tearCtx)
 	}()
-	go run()
 
-	err = retry(checkReadyStatus, time.Second, 100*time.Millisecond)
-	if err != nil {
-		t.Errorf("cannot check the ready status: %s", err)
-	}
+	go func() {
+		_ = app.Run()
+	}()
+
+	err := retry(checkReadyStatus, time.Second, 100*time.Millisecond)
+	is.NoErr(err)
 
 	err = retry(checkHealthyStatus, time.Second, 100*time.Millisecond)
-	if err != nil {
-		t.Errorf("cannot check the healthy status: %s", err)
-	}
-
-	// the app is ready to go!
+	is.NoErr(err)
 }
 
 func checkHealthyStatus() bool {
