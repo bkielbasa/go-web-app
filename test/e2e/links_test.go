@@ -61,6 +61,7 @@ func TestClickingLinkShouldRedirectToTargetPage(t *testing.T) {
 		t.Log(shortLink)
 		resp, err := clickLink(shortLink)
 		is.Equal(http.StatusMovedPermanently, resp.StatusCode)
+		is.NoErr(err)
 	})
 }
 
