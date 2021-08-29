@@ -7,6 +7,7 @@ import (
 
 	"github.com/bkielbasa/go-web-app/internal/application"
 	"github.com/bkielbasa/go-web-app/internal/cmd"
+	"github.com/bkielbasa/go-web-app/links"
 )
 
 const tearDownTimeout = 5 * time.Second
@@ -14,6 +15,7 @@ const tearDownTimeout = 5 * time.Second
 func main() {
 	ctx := cmd.Context()
 	app := application.New(ctx)
+	app.AddModule(links.New("https://linkio.io"))
 
 	go func() {
 		_ = app.Run()

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/bkielbasa/go-web-app/internal/application"
+	"github.com/bkielbasa/go-web-app/links"
 	"github.com/matryer/is"
 )
 
@@ -18,10 +19,23 @@ func TestRunningApp(t *testing.T) {
 
 	is := is.New(t)
 
+	runApp(func() {
+		err := retry(checkReadyStatus, time.Second, 100*time.Millisecond)
+		is.NoErr(err)
+
+		err = retry(checkHealthyStatus, time.Second, 100*time.Millisecond)
+		is.NoErr(err)
+	})
+}
+
+const shortBaseURL = "http://localhost:8080"
+
+func runApp(f func()) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	app := application.New(ctx)
+	app.AddModule(links.New(shortBaseURL))
 
 	defer func() {
 		tearCtx, cancelTear := context.WithTimeout(context.Background(), time.Second)
@@ -34,11 +48,7 @@ func TestRunningApp(t *testing.T) {
 		_ = app.Run()
 	}()
 
-	err := retry(checkReadyStatus, time.Second, 100*time.Millisecond)
-	is.NoErr(err)
-
-	err = retry(checkHealthyStatus, time.Second, 100*time.Millisecond)
-	is.NoErr(err)
+	f()
 }
 
 func checkHealthyStatus() bool {

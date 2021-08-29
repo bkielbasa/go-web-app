@@ -5,25 +5,28 @@ import (
 	"net/http"
 
 	"github.com/bkielbasa/go-web-app/internal/dependency"
+	"github.com/gorilla/mux"
 )
 
 type App struct {
 	httpServer *http.Server
+	router     *mux.Router
 }
 
 func New(ctx context.Context) *App {
-	mux := http.NewServeMux()
+	r := mux.NewRouter()
 	healthy := dependency.New()
-	mux.HandleFunc("/healthyz", healthy.Healthy)
-	mux.HandleFunc("/readyz", healthy.Ready)
+	r.HandleFunc("/healthyz", healthy.Healthy)
+	r.HandleFunc("/readyz", healthy.Ready)
 
 	httpServer := &http.Server{
 		Addr:    ":8080",
-		Handler: mux,
+		Handler: r,
 	}
 
 	return &App{
 		httpServer: httpServer,
+		router:     r,
 	}
 }
 
@@ -38,4 +41,17 @@ func (app *App) Run() error {
 
 func (app *App) Close(ctx context.Context) error {
 	return app.httpServer.Shutdown(ctx)
+}
+
+type MuxRegister interface {
+	MuxRegister(*mux.Router)
+}
+
+func (app *App) AddModule(module Module) {
+	if m, ok := module.(MuxRegister); ok {
+		m.MuxRegister(app.router)
+	}
+}
+
+type Module interface {
 }
