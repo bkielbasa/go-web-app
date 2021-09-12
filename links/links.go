@@ -8,8 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func New(shortBaseURL string) application.Module {
-	storage := infra.NewInMemoryStorage()
+func New(shortBaseURL string, storage app.Storage) application.Module {
 	serv := domain.NewLinksService(shortBaseURL)
 	linksApp := app.NewLinks(serv, storage)
 

@@ -14,10 +14,6 @@ import (
 )
 
 func TestAddNewLinks(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping in short tests")
-	}
-
 	is := is.New(t)
 
 	runApp(func() {
@@ -28,10 +24,6 @@ func TestAddNewLinks(t *testing.T) {
 }
 
 func TestLinksShouldBeUnique(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping in short tests")
-	}
-
 	is := is.New(t)
 
 	runApp(func() {
@@ -41,16 +33,12 @@ func TestLinksShouldBeUnique(t *testing.T) {
 
 		shortLink2, err := addNewLink("https://google.com", []string{})
 		is.NoErr(err)
-		is.True(strings.HasPrefix(shortLink, shortBaseURL))
+		is.True(strings.HasPrefix(shortLink, shortBaseURL)) // fjslfjdslfjdslkfsdjk
 		is.True(shortLink != shortLink2)
 	})
 }
 
 func TestClickingLinkShouldRedirectToTargetPage(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping in short tests")
-	}
-
 	is := is.New(t)
 
 	runApp(func() {

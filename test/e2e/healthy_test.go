@@ -2,20 +2,22 @@ package e2e_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/bkielbasa/go-web-app/internal/application"
 	"github.com/bkielbasa/go-web-app/links"
+	"github.com/bkielbasa/go-web-app/links/app"
+	"github.com/bkielbasa/go-web-app/links/infra"
+	_ "github.com/lib/pq"
 	"github.com/matryer/is"
 )
 
 func TestRunningApp(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping in short tests")
-	}
 
 	is := is.New(t)
 
@@ -34,8 +36,20 @@ func runApp(f func()) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	app := application.New(ctx)
-	app.AddModule(links.New(shortBaseURL))
+	var storage app.Storage
+
+	if testing.Short() {
+		storage = infra.NewInMemoryStorage()
+	} else {
+		db, err := sql.Open("postgres", os.Getenv("POSTGRESCONNSTRING"))
+		if err != nil {
+			panic(err)
+		}
+		storage = infra.NewPostgresStorage(db)
+	}
+
+	app := application.New(ctx, 8080)
+	app.AddModule(links.New(shortBaseURL, storage))
 
 	defer func() {
 		tearCtx, cancelTear := context.WithTimeout(context.Background(), time.Second)

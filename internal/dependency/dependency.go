@@ -24,12 +24,18 @@ func New() *DependencyManager {
 	}
 }
 
+func (h *DependencyManager) Add(dep Dependency) {
+	h.dependencies = append(h.dependencies, dep)
+}
+
 func (h *DependencyManager) Healthy(w http.ResponseWriter, r *http.Request) {
 	for _, s := range h.dependencies {
 		if !s.Healthy(r.Context()) {
 			http.Error(w, "Unhealthy", http.StatusInternalServerError)
 		}
 	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *DependencyManager) Ready(w http.ResponseWriter, r *http.Request) {
@@ -38,4 +44,5 @@ func (h *DependencyManager) Ready(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Not ready", http.StatusInternalServerError)
 		}
 	}
+	w.WriteHeader(http.StatusOK)
 }

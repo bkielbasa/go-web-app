@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/bkielbasa/go-web-app/links/app"
@@ -31,18 +32,21 @@ func NewHTTPHandler(linksApp app.Link) HTTPHandler {
 func (h HTTPHandler) Add(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		log.Print(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	req := AddLinkRequest{}
 	if err = json.Unmarshal(body, &req); err != nil {
+		log.Print(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	shortURL, err := h.links.Add(r.Context(), req.Target, req.Tags)
 	if err != nil {
+		log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
